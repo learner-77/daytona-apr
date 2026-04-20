@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Always read these before starting any task in this repo:**
 
-1. **Memory files** at `C:\Users\admin\.claude\projects\C--tools-my-codebases-daytona-apr-fork-daytona-apr\memory\` — start with `MEMORY.md` (index), then load relevant entries. These contain architecture decisions, debugging patterns, port assignments, credentials, and session feedback.
+1. **Memory files** at [`.claude/memory/`](.claude/memory/) in this repo — start with [`MEMORY.md`](.claude/memory/MEMORY.md) (index), then load relevant entries. These contain architecture decisions, debugging patterns, port assignments, credentials, and session feedback. (Also mirrored to `C:\Users\admin\.claude\projects\C--tools-my-codebases-daytona-apr-fork-daytona-apr\memory\` for user-level persistence.)
 2. **[docs/app-module-reference.md](docs/app-module-reference.md)** — comprehensive reference for all apps, shared libs, ports, env vars, and inter-service communication.
 3. **[docs/troubleshooting-kb.md](docs/troubleshooting-kb.md)** — 17 known issues with Symptom / Root Cause / Fix / Status. Check here before debugging.
 4. **[docs/flow-diagrams.md](docs/flow-diagrams.md)** — Mermaid sequence diagrams + verbose step-by-step for 7 key flows (login, sandbox creation, snapshot lifecycle, proxy/preview, SSH, runner healthcheck, startup order).
