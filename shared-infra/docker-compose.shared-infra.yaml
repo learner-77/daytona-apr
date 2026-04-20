@@ -1,0 +1,295 @@
+# =============================================================================
+# Shared Infrastructure — docker-compose.shared-infra.yaml
+# =============================================================================
+# Project:    shared-infra
+# Network:    shared-infra (external — created by start-shared-infra.sh)
+# Purpose:    Reusable services shared across all local Docker projects
+# WSL2 IP:    192.168.16.153
+# Port range: 13000–13900 (50-port intervals)
+#
+# Usage:
+#   Start:   ./start-shared-infra.sh
+#   Stop:    docker compose -f docker-compose.shared-infra.yaml down
+#   Logs:    docker compose -f docker-compose.shared-infra.yaml logs -f
+#   Status:  docker compose -f docker-compose.shared-infra.yaml ps
+#
+# Connecting an app to this network:
+#   Add to the app's docker-compose file:
+#     networks:
+#       shared-infra:
+#         external: true
+#   Then reference services by container name (e.g. postgres-shared, redis-shared)
+# =============================================================================
+
+name: shared-infra
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Shared relational database
+  # External: 13000 | Internal: 5432
+  # Host (from app):  postgres-shared:5432
+  # Host (Windows):   192.168.16.153:13000
+  # Credentials:      admin / admin
+  # Per-app usage:    CREATE DATABASE myapp; (one database per app)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:17
+    container_name: postgres-shared
+    restart: always
+    ports:
+      - 13000:5432
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - shared-infra
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Redis — Shared cache and message queue
+  # External: 13050 | Internal: 6379
+  # Host (from app):  redis-shared:6379
+  # Host (Windows):   192.168.16.153:13050
+  # Per-app usage:    Use key prefixes (e.g. daytona:session:*, langfuse:cache:*)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:latest
+    container_name: redis-shared
+    restart: always
+    ports:
+      - 13050:6379
+    volumes:
+      - redis_data:/data
+    networks:
+      - shared-infra
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # MinIO — Shared S3-compatible object storage
+  # S3 API:    External 13100 | Internal 9000 — used by apps to read/write
+  # Console:   External 13150 | Internal 9001 — web UI to manage buckets
+  # Host (from app):  minio-shared:9000
+  # Console URL:      http://192.168.16.153:13150
+  # Credentials:      minioadmin / minioadmin
+  # Per-app usage:    Create one bucket per app (e.g. daytona, langfuse)
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: minio-shared
+    restart: always
+    ports:
+      - 13100:9000
+      - 13150:9001
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - shared-infra
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # MailDev — Shared SMTP test mail server
+  # Web UI:  External 13200 | Internal 1080 — view all captured emails
+  # SMTP:    External 13250 | Internal 1025 — apps send mail here
+  # Host (from app):  maildev-shared:1025
+  # Web URL:          http://192.168.16.153:13200
+  # No auth required — all emails captured, none delivered externally
+  # ---------------------------------------------------------------------------
+  maildev:
+    image: maildev/maildev
+    container_name: maildev-shared
+    restart: always
+    ports:
+      - 13200:1080
+      - 13250:1025
+    networks:
+      - shared-infra
+
+  # ---------------------------------------------------------------------------
+  # Dex — Shared OAuth2 / OIDC identity provider
+  # External: 13300 | Internal: 5556
+  # Host (from app):  dex-shared:5556
+  # OIDC URL:         http://192.168.16.153:13300/dex
+  # Config:           ./dex/config.yaml — add one staticClient entry per app
+  # Test user:        admin@local.dev / password
+  # ---------------------------------------------------------------------------
+  dex:
+    image: dexidp/dex:v2.42.0
+    container_name: dex-shared
+    restart: always
+    ports:
+      - 13300:5556
+    volumes:
+      - ./dex/config.yaml:/etc/dex/config.yaml
+      - dex_data:/var/lib/dex
+    user: root
+    entrypoint: ['sh', '-c', 'touch /var/lib/dex/dex.db && exec dex serve /etc/dex/config.yaml']
+    networks:
+      - shared-infra
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:5556/dex/.well-known/openid-configuration"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Jaeger — Shared distributed tracing UI
+  # External: 13350 | Internal: 16686
+  # UI URL:          http://192.168.16.153:13350
+  # Receives traces from OTel Collector (internal only, no port exposed)
+  # ---------------------------------------------------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-shared
+    restart: always
+    ports:
+      - 13350:16686
+    networks:
+      - shared-infra
+
+  # ---------------------------------------------------------------------------
+  # OpenTelemetry Collector — Shared telemetry collector
+  # gRPC: External 13400 | Internal 4317 — apps push traces/metrics here
+  # HTTP: External 13450 | Internal 4318 — apps push traces/metrics here
+  # Host (from app):  otel-collector-shared:4317 (gRPC) or :4318 (HTTP)
+  # App env var:      OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector-shared:4318
+  # Forwards to:      jaeger-shared
+  # Config:           ./otel/otel-collector-config.yaml
+  # ---------------------------------------------------------------------------
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector-shared
+    restart: always
+    ports:
+      - 13400:4317
+      - 13450:4318
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    networks:
+      - shared-infra
+
+  # ---------------------------------------------------------------------------
+  # Prometheus — Shared metrics scraper
+  # External: 13500 | Internal: 9090
+  # UI URL:   http://192.168.16.153:13500
+  # Config:   ./prometheus/prometheus.yml — add scrape targets per app
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-shared
+    restart: always
+    ports:
+      - 13500:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - shared-infra
+
+  # ---------------------------------------------------------------------------
+  # Grafana — Shared metrics and observability dashboard
+  # External: 13550 | Internal: 3000
+  # UI URL:   http://192.168.16.153:13550
+  # Login:    admin / admin
+  # Add Prometheus datasource: http://prometheus-shared:9090
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-shared
+    restart: always
+    ports:
+      - 13550:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - shared-infra
+
+  # ---------------------------------------------------------------------------
+  # Docker Registry — Shared local image registry
+  # External: 13600 | Internal: 5000
+  # Registry URL:  http://192.168.16.153:13600
+  # Push:          docker tag myimage 192.168.16.153:13600/myimage:tag
+  # Pull:          docker pull 192.168.16.153:13600/myimage:tag
+  # ---------------------------------------------------------------------------
+  registry:
+    image: registry:2.8.2
+    container_name: registry-shared
+    restart: always
+    ports:
+      - 13600:5000
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+    volumes:
+      - registry_data:/var/lib/registry
+    networks:
+      - shared-infra
+
+  # ---------------------------------------------------------------------------
+  # Registry UI — Web UI for local Docker registry
+  # External: 13650 | Internal: 80
+  # UI URL:   http://192.168.16.153:13650
+  # Connects to registry-shared at http://registry-shared:5000
+  # ---------------------------------------------------------------------------
+  registry-ui:
+    image: joxit/docker-registry-ui:main
+    container_name: registry-ui-shared
+    restart: always
+    ports:
+      - 13650:80
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_TITLE=Shared Local Registry
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - NGINX_PROXY_PASS_URL=http://registry-shared:5000
+      - SHOW_CATALOG_NB_TAGS=true
+      - CATALOG_MIN_BRANCHES=1
+      - CATALOG_MAX_BRANCHES=1
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
+    networks:
+      - shared-infra
+    depends_on:
+      - registry
+
+# =============================================================================
+# Volumes — all named, persisted across restarts
+# =============================================================================
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  dex_data:
+  prometheus_data:
+  grafana_data:
+  registry_data:
+
+# =============================================================================
+# Network — must be created externally before running this file
+#   docker network create shared-infra
+# =============================================================================
+networks:
+  shared-infra:
+    external: true

@@ -147,7 +147,7 @@ const InfoTooltipButton = ({ className, ...props }: ComponentProps<'button'>) =>
 
 export const CreateSandboxSheet = ({ className, ref }: { className?: string; ref?: Ref<{ open: () => void }> }) => {
   const navigate = useNavigate()
-  const createSandboxEnabled = useFeatureFlagEnabled(FeatureFlags.DASHBOARD_CREATE_SANDBOX)
+  const createSandboxEnabled = useFeatureFlagEnabled(FeatureFlags.DASHBOARD_CREATE_SANDBOX) ?? true
   const [open, setOpen] = useState(false)
 
   const config = useConfig()

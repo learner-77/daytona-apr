@@ -1,0 +1,41 @@
+# =============================================================================
+# OpenTelemetry Collector Configuration — shared-infra
+# =============================================================================
+# Receives telemetry from all apps and forwards to Jaeger
+#
+# Apps connect via:
+#   gRPC: otel-collector-shared:4317
+#   HTTP: otel-collector-shared:4318
+#
+# App env vars to set:
+#   OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector-shared:4318
+#   OTEL_ENABLED=true
+# =============================================================================
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317   # apps push traces/metrics here via gRPC
+      http:
+        endpoint: 0.0.0.0:4318   # apps push traces/metrics here via HTTP
+
+processors:
+  batch:                          # batches data before exporting for efficiency
+
+exporters:
+  otlp/jaeger:
+    endpoint: jaeger-shared:4317  # forwards all telemetry to shared Jaeger
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/jaeger]

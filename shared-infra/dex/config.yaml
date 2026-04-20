@@ -1,0 +1,52 @@
+# =============================================================================
+# Dex OIDC Configuration — shared-infra
+# =============================================================================
+# Issuer URL: http://192.168.16.153:13300/dex
+# Test user:  admin@local.dev / password
+#
+# To add a new app: copy a staticClients entry and update id, secret, redirectURIs
+# =============================================================================
+
+issuer: http://192.168.16.153:13300/dex
+
+storage:
+  type: sqlite3
+  config:
+    file: /var/lib/dex/dex.db
+
+web:
+  http: 0.0.0.0:5556
+  allowedOrigins:
+    - http://192.168.16.153:12000
+
+# ---------------------------------------------------------------------------
+# OAuth2 clients — one entry per app
+# ---------------------------------------------------------------------------
+staticClients:
+
+  # Daytona
+  - id: daytona
+    public: true
+    name: Daytona
+    redirectURIs:
+      - http://192.168.16.153:12000
+      - http://localhost:12000
+
+  # Template for next app — copy and fill in
+  # - id: myapp
+  #   secret: myapp-secret
+  #   name: My App
+  #   redirectURIs:
+  #     - http://192.168.16.153:PORT/callback
+
+# ---------------------------------------------------------------------------
+# Local test users — for development only
+# Password hash below = "password" (bcrypt)
+# To generate new hash: htpasswd -bnBC 10 "" yourpassword | tr -d ':\n'
+# ---------------------------------------------------------------------------
+enablePasswordDB: true
+staticPasswords:
+  - email: admin@local.dev
+    hash: "$2b$10$RcuxplfEBLzGGhc5db.jz.wMF.ejphg3Wgw3j8Jwh5lp.UhOBT5am"
+    username: admin
+    userID: 08a8684b-db88-4b73-90a9-3cd1661f5466

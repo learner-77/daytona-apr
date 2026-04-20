@@ -1,0 +1,33 @@
+# =============================================================================
+# Prometheus Configuration — shared-infra
+# =============================================================================
+# UI: http://192.168.16.153:13500
+#
+# To add a new app: add a scrape_config entry pointing to the app's metrics endpoint
+# Most apps expose metrics at /metrics on their API port
+# =============================================================================
+
+global:
+  scrape_interval: 15s      # how often to scrape targets
+  evaluation_interval: 15s  # how often to evaluate rules
+
+scrape_configs:
+
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ---------------------------------------------------------------------------
+  # App scrape targets — add one block per app
+  # ---------------------------------------------------------------------------
+
+  # Daytona API metrics
+  # - job_name: daytona-api
+  #   static_configs:
+  #     - targets: ['api:3500']   # internal container name:port
+
+  # Template for next app
+  # - job_name: myapp
+  #   static_configs:
+  #     - targets: ['myapp-container:PORT']

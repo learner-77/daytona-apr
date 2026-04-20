@@ -1,0 +1,3 @@
+{
+  "insecure-registries": ["registry-shared:5000", "192.168.16.153:13600"]
+}
