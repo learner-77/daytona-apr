@@ -94,7 +94,10 @@ export class Configuration {
         this.baseOptions = {
             ...param.baseOptions,
             headers: {
-                'User-Agent': `api-client-typescript/${packageJson.version}`,
+                // Browsers block setting User-Agent — only set in Node.js environments
+                ...(typeof window === 'undefined'
+                    ? { 'User-Agent': `api-client-typescript/${packageJson.version}` }
+                    : {}),
                 ...param.baseOptions?.headers,
             },
         };

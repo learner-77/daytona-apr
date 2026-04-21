@@ -28,6 +28,8 @@
 | 16 | Webhook service 503 error (Playground feature) | Unresolved |
 | 17 | Sandbox creation POST not made from dashboard | Resolved |
 | 18 | OTLPExporter 404 errors in API logs | Known / Low Priority |
+| 19 | "Refused to set unsafe header 'User-Agent'" in browser console | Resolved |
+| 20 | POST /api/webhooks/.../app-portal-access → 503 on Sandboxes page | Known / Not a blocker |
 
 ---
 
@@ -311,6 +313,39 @@ The runner should show `state = 'ready'` and `staleness < 60s` before proceeding
 **Note:** No manual intervention is needed beyond waiting. The runner recovers automatically.
 
 **Status:** Resolved (Wait required after API restart)
+
+---
+
+### Issue 19 — "Refused to Set Unsafe Header 'User-Agent'" in Browser Console
+
+**Symptom:** Browser console shows `Refused to set unsafe header "User-Agent"` when dashboard makes API calls. Sandbox creation form may fail silently or API requests may not fire correctly.
+
+**Root Cause:** `libs/api-client/src/configuration.ts:97` unconditionally sets `'User-Agent': api-client-typescript/${version}` on every request. Browsers treat `User-Agent` as a forbidden header and block any JavaScript attempt to set it (per Fetch spec).
+
+**Fix:** Made the header conditional on environment — only set in Node.js, skip in browser:
+
+```typescript
+// libs/api-client/src/configuration.ts ~line 96
+...(typeof window === 'undefined'
+    ? { 'User-Agent': `api-client-typescript/${packageJson.version}` }
+    : {}),
+```
+
+Rebuild API image and force-recreate container after the change.
+
+**Status:** Resolved
+
+---
+
+### Issue 20 — POST /api/webhooks/.../app-portal-access → 503 on Sandboxes Page
+
+**Symptom:** Network tab shows `POST /api/webhooks/organizations/:id/app-portal-access` returning 503 Service Unavailable when visiting `/dashboard/sandboxes`.
+
+**Root Cause:** The `SvixProvider` component fires this call on navigation to the Webhooks route. It requires `SVIX_AUTH_TOKEN` which is not configured in local dev. The 503 is the expected response when Svix is disabled.
+
+**Fix:** Not a blocker for sandbox creation — only affects `/dashboard/webhooks` (Playground) page. Use `/dashboard/sandboxes` for sandbox management. No fix needed unless Svix integration is required.
+
+**Status:** Known / Not a blocker
 
 ---
 
