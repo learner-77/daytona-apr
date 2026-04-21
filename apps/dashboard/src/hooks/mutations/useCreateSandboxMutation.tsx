@@ -27,7 +27,7 @@ export const useCreateSandboxMutation = () => {
       const { target, ...createParams } = params
       const client = new Daytona({
         jwtToken: user.access_token,
-        apiUrl: import.meta.env.VITE_API_URL,
+        apiUrl: `${window.location.origin}/api`,
         organizationId: selectedOrganization.id,
         target,
       })
