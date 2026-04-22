@@ -1,295 +1,236 @@
-&nbsp;
+# Daytona — Local Dev Fork
 
-<div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-white.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-black.png">
-    <img alt="Daytona logo" src="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-black.png" width="50%">
-  </picture>
-</div>
+This fork adds a fully configured local Docker development environment for Windows 11 Home with WSL2.
 
-<h3 align="center">
-  Run AI Code.
-  <br/>
-  Secure and Elastic Infrastructure for
-  Running Your AI-Generated Code.
-</h3>
-
-<p align="center">
-    <a href="https://www.daytona.io/docs"> Documentation </a>·
-    <a href="https://github.com/daytonaio/daytona/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%F0%9F%90%9B+Bug+Report%3A+"> Report Bug </a>·
-    <a href="https://github.com/daytonaio/daytona/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%F0%9F%9A%80+Feature%3A+"> Request Feature </a>·
-    <a href="https://go.daytona.io/slack"> Join our Slack </a>·
-    <a href="https://x.com/daytonaio"> Connect on X </a>
-</p>
-
-&nbsp;
-
-Daytona is a secure and elastic infrastructure runtime for AI-generated code execution and agent workflows. Our open-source platform provides [sandboxes](https://www.daytona.io/docs/sandboxes/), full composable computers with complete isolation, a dedicated kernel, filesystem, network stack, and allocated vCPU, RAM, and disk.
-
-Sandboxes are the core component of the Daytona platform, spinning up in under 90ms from code to execution and running any code in Python, TypeScript, and JavaScript. Built on OCI/Docker compatibility, massive parallelization, and unlimited persistence, sandboxes deliver consistent, predictable environments for agent workflows.
-
-Agents and developers interact with sandboxes programmatically using the Daytona [SDKs](https://www.daytona.io/docs/#3-install-the-sdk), [API](https://www.daytona.io/docs/tools/api/#daytona/), and [CLI](https://www.daytona.io/docs/tools/cli/). Operations span sandbox lifecycle management, filesystem operations, process and code execution, and runtime configuration through base images, packages, and tooling. Our stateful environment [snapshots](https://www.daytona.io/docs/snapshots/) enable persistent agent operations across sessions, making Daytona the ideal foundation for AI agent architectures.
-
-## Features
-
-Daytona provides an extensive set of features and tools for interacting with sandboxes.
-
-- **Platform**: governance and operational controls for organizations standardizing on Daytona
-- **Sandboxes**: isolated full composable computers that execute workloads and retain state
-- **Agent tools**: programmatic capabilities for application code, agents, and integrations
-- **Human tools**: interfaces and remote sessions for interacting with sandboxes
-- **System tools**: platform-level hooks and controls for lifecycle events and network access
-
-| Platform                                                                   | Sandboxes                                                               | Agent tools                                                                       | Human tools                                                               | System tools                                                  |
-| :------------------------------------------------------------------------- | :---------------------------------------------------------------------- | :-------------------------------------------------------------------------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------ |
-| [Organizations](https://www.daytona.io/docs/organizations/)                | [Environment](https://www.daytona.io/docs/configuration/)               | [Process & code execution](https://www.daytona.io/docs/process-code-execution/)   | [Dashboard](https://www.daytona.io/docs/getting-started#dashboard)        | [Webhooks](https://www.daytona.io/docs/webhooks/)             |
-| [API Keys](https://www.daytona.io/docs/api-keys/)                          | [Snapshots](https://www.daytona.io/docs/snapshots/)                     | [File system operations](https://www.daytona.io/docs/file-system-operations/)     | [Web terminal](https://www.daytona.io/docs/web-terminal/)                 | [Network limits](https://www.daytona.io/docs/network-limits/) |
-| [Limits](https://www.daytona.io/docs/limits/)                              | [Declarative builder](https://www.daytona.io/docs/declarative-builder/) | [Language server protocol](https://www.daytona.io/docs/language-server-protocol/) | [SSH access](https://www.daytona.io/docs/ssh-access/)                     |                                                               |
-| [Billing](https://www.daytona.io/docs/billing/)                            | [Volumes](https://www.daytona.io/docs/volumes/)                         | [Computer use](https://www.daytona.io/docs/computer-use/)                         | [VNC access](https://www.daytona.io/docs/vnc-access/)                     |                                                               |
-| [Audit logs](https://www.daytona.io/docs/audit-logs/)                      | [Regions](https://www.daytona.io/docs/regions/)                         | [MCP server](https://www.daytona.io/docs/mcp/)                                    | [VPN connection](https://www.daytona.io/docs/vpn-connections/)            |                                                               |
-| [OpenTelemetry](https://www.daytona.io/docs/experimental/otel-collection/) |                                                                         | [Git operations](https://www.daytona.io/docs/git-operations/)                     | [Preview](https://www.daytona.io/docs/preview/)                           |                                                               |
-| [Integrations](https://www.daytona.io/docs/guides/)                        |                                                                         | [Pseudo terminal (PTY)](https://www.daytona.io/docs/pty/)                         | [Custom preview proxy](https://www.daytona.io/docs/custom-preview-proxy/) |                                                               |
-| [Security exhibit](https://www.daytona.io/docs/security-exhibit/)          |                                                                         | [Log streaming](https://www.daytona.io/docs/log-streaming/)                       | [Playground](https://www.daytona.io/docs/playground/)                     |                                                               |
-
-## Architecture
-
-Daytona platform is organized into multiple plane components, each serving a specific purpose. A detailed overview of each component is available in the [architecture documentation](https://www.daytona.io/docs/architecture/).
-
-- **Interface plane**: provides client interfaces for interacting with Daytona
-- **Control plane**: orchestrates all sandbox operations
-- **Compute plane**: runs and manages sandbox instances
-
-### Applications
-
-Runnable applications and services for the Daytona platform. Each directory is a deployable or buildable component, available in the [apps](apps) directory.
-
-- [`api`](apps/api): NestJS-based RESTful service; primary entry point for all platform operations
-- [`cli`](apps/cli): Go command-line interface access to core features for interacting with sandboxes
-- [`daemon`](apps/daemon): code execution agent that runs inside each sandbox
-- [`dashboard`](apps/dashboard): web user interface for visual sandbox management
-- [`docs`](apps/docs): documentation content; website published to [daytona.io/docs](https://www.daytona.io/docs/)
-- [`otel-collector`](apps/otel-collector): trace and metric collection for Daytona SDK operations
-- [`proxy`](apps/proxy): reverse proxy for custom routing and preview URLs
-- [`runner`](apps/runner): compute nodes that power Daytona's compute plane and run sandboxes
-- [`snapshot-manager`](apps/snapshot-manager): orchestrates the creation of sandbox snapshots
-- [`ssh-gateway`](apps/ssh-gateway): standalone SSH gateway that accepts authenticated `ssh` connections
-
-### Client libraries
-
-Client libraries integrate the Daytona platform from application code through developer-facing SDKs backed by OpenAPI-generated REST clients and toolbox API clients. Each directory is a publishable package for a specific language or runtime, available in the [libs](libs) directory.
-
-#### Python
-
-```bash
-pip install daytona
-```
-
-Standalone packages and libraries for interacting with Daytona using Python:
-
-> [`sdk-python`](libs/sdk-python) • [`api-client-python`](libs/api-client-python) • [`api-client-python-async`](libs/api-client-python-async) • [`toolbox-api-client-python`](libs/toolbox-api-client-python) • [`toolbox-api-client-python-async`](libs/toolbox-api-client-python-async)
-
-#### TypeScript
-
-```bash
-npm install @daytona/sdk
-```
-
-Standalone packages and libraries for interacting with Daytona using TypeScript:
-
-> [`sdk-typescript`](libs/sdk-typescript) • [`api-client`](libs/api-client) • [`toolbox-api-client`](libs/toolbox-api-client)
-
-#### Ruby
-
-```bash
-gem install daytona
-```
-
-Standalone packages and libraries for interacting with Daytona using Ruby:
-
-> [`sdk-ruby`](libs/sdk-ruby) • [`api-client-ruby`](libs/api-client-ruby) • [`toolbox-api-client-ruby`](libs/toolbox-api-client-ruby)
-
-#### Go
-
-```bash
-go get github.com/daytonaio/daytona/libs/sdk-go
-```
-
-Standalone packages and libraries for interacting with Daytona using Go:
-
-> [`sdk-go`](libs/sdk-go) • [`api-client-go`](libs/api-client-go) • [`toolbox-api-client-go`](libs/toolbox-api-client-go)
-
-#### Java
-
-Gradle (`build.gradle.kts`):
-
-```kotlin
-dependencies {
-    implementation("io.daytona:sdk:0.1.0")
-}
-```
-
-Maven (`pom.xml`):
-
-```xml
-<dependency>
-  <groupId>io.daytona</groupId>
-  <artifactId>sdk</artifactId>
-  <version>0.1.0</version>
-</dependency>
-```
-
-Standalone packages and libraries for interacting with Daytona using Java:
-
-> [`sdk-java`](libs/sdk-java) • [`api-client-java`](libs/api-client-java) • [`toolbox-api-client-java`](libs/toolbox-api-client-java)
-
-## Deployments
-
-Daytona is available as a managed service on [app.daytona.io](https://app.daytona.io). Daytona can run as a fully hosted service, as an open-source stack you operate, or in a hybrid setup where Daytona orchestrates sandboxes while execution happens on machines you manage.
-
-- [Open source deployment](https://www.daytona.io/docs/oss-deployment/): full local stack from the [`docker`](docker) directory using Docker Compose
-- [Customer managed compute](https://www.daytona.io/docs/runners/): custom regions and runner machines that operate Daytona sandboxes on your own compute infrastructure
-
-## Quick Start
-
-1. Create an account at [app.daytona.io](https://app.daytona.io)
-2. Generate an [API key](https://app.daytona.io/dashboard/keys)
-3. Create a sandbox
-
-### Python SDK
-
-```py
-from daytona import Daytona, DaytonaConfig
-
-config = DaytonaConfig(api_key="YOUR_API_KEY")
-daytona = Daytona(config)
-sandbox = daytona.create()
-response = sandbox.process.code_run('print("Hello World!")')
-print(response.result)
-```
-
-### Typescript SDK
-
-```jsx
-import { Daytona } from "@daytona/sdk";
-
-const daytona = new Daytona({ apiKey: "YOUR_API_KEY" });
-const sandbox = await daytona.create();
-const response = await sandbox.process.codeRun('print("Hello World!")');
-console.log(response.result);
-```
-
-### Ruby SDK
-
-```ruby
-require 'daytona'
-
-config = Daytona::Config.new(api_key: 'YOUR_API_KEY')
-daytona = Daytona::Daytona.new(config)
-sandbox = daytona.create
-response = sandbox.process.code_run(code: 'print("Hello World!")')
-puts response.result
-```
-
-### Go SDK
-
-```go
-package main
-
-import (
-  "context"
-  "fmt"
-  "github.com/daytonaio/daytona/libs/sdk-go/pkg/daytona"
-  "github.com/daytonaio/daytona/libs/sdk-go/pkg/types"
-)
-
-func main() {
-  config := &types.DaytonaConfig{APIKey: "YOUR_API_KEY"}
-  client, _ := daytona.NewClientWithConfig(config)
-  ctx := context.Background()
-  sandbox, _ := client.Create(ctx, nil)
-  response, _ := sandbox.Process.ExecuteCommand(ctx, "echo 'Hello World!'")
-  fmt.Println(response.Result)
-}
-```
-
-### Java SDK
-
-```java
-import io.daytona.sdk.Daytona;
-import io.daytona.sdk.DaytonaConfig;
-import io.daytona.sdk.Sandbox;
-import io.daytona.sdk.model.ExecuteResponse;
-
-public class Main {
-  public static void main(String[] args) {
-    DaytonaConfig config = new DaytonaConfig.Builder()
-        .apiKey("YOUR_API_KEY")
-        .build();
-    try (Daytona daytona = new Daytona(config)) {
-      Sandbox sandbox = daytona.create();
-      ExecuteResponse response = sandbox.getProcess().executeCommand("echo 'Hello World!'");
-      System.out.println(response.getResult());
-    }
-  }
-}
-```
-
-### API
-
-```bash
-curl 'https://app.daytona.io/api/sandbox' \
-  --request POST \
-  --header 'Authorization: Bearer <YOUR_API_KEY>' \
-  --header 'Content-Type: application/json' \
-  --data '{}'
-```
-
-### CLI
-
-```bash
-daytona create
-```
-
-## Development
-
-### Devcontainer (full environment)
-
-Open this repository in a [devcontainer](https://containers.dev/)-compatible editor (VS Code, GitHub Codespaces) for a batteries-included setup with all languages, tools, and supporting services.
-
-### Nix (lightweight, agent-friendly)
-
-If you prefer working outside the devcontainer — or are an AI agent executing build commands — use the Nix dev shells:
-
-```bash
-# Enter the full dev shell (Go + Node + Python + Ruby + JDK)
-nix develop
-
-# Or pick a language-specific shell
-nix develop .#go       # Go services & libs
-nix develop .#node     # TypeScript / Node.js apps & libs
-nix develop .#python   # Python SDKs & libs
-nix develop .#ruby     # Ruby SDKs & libs
-nix develop .#java     # Java SDKs & libs
-```
-
-**Prerequisites:** [Nix](https://nixos.org/download/) with flakes enabled (`experimental-features = nix-command flakes` in `~/.config/nix/nix.conf`).
-
-For non-interactive / CI usage:
-
-```bash
-nix develop .#go --command bash -c "go build ./..."
-```
-
-Optional: Install [direnv](https://direnv.net/) + [nix-direnv](https://github.com/nix-community/nix-direnv) for automatic shell activation when you `cd` into the project.
-
-See [`AGENTS.md`](AGENTS.md) for the full shell reference, project-to-shell mapping, and common commands.
-
-> **Note:** Supporting services (PostgreSQL, Redis, etc.) are still managed via `docker compose -f .devcontainer/docker-compose.yaml up`.
+For the original Daytona documentation see [README_orig.md](README_orig.md).
 
 ---
 
-## Contributing
+## What's in this fork
 
-> [!NOTE]
-> Daytona is Open Source under the [GNU AFFERO GENERAL PUBLIC LICENSE](LICENSE), and is the [copyright of its contributors](NOTICE). If you would like to contribute to the software, read the [Developer Certificate of Origin Version 1.1](https://developercertificate.org/) and the [contributing guide](CONTRIBUTING.md) to get started.
+| Addition | Purpose |
+|----------|---------|
+| `docker/docker-compose.local.yaml` | Daytona app services (api, proxy, runner, ssh-gateway) |
+| `docker/.env` | Local secrets and config |
+| `docker/runner-daemon.json` | DinD insecure-registry config for local container registry |
+| `shared-infra/` | Reusable Docker Compose — postgres, redis, minio, dex, jaeger, otel, prometheus, grafana, registry |
+| `build-and-run.sh` / `build-and-run.ps1` | One-shot build + deploy scripts |
+| `CLAUDE.md` | Claude Code guidance for this repo |
+| `docs/` | Architecture reference, troubleshooting KB (20 issues), flow diagrams |
+| `.claude/memory/` | Claude Code session memory — architecture, debug patterns, file references |
+| **Bug fixes** | PostHog feature flag gate, `User-Agent` browser header, hardcoded API base URL |
+
+---
+
+## Architecture
+
+Windows + Docker Desktop with WSL2. Two Docker Compose projects that must start in order:
+
+```
+1. shared-infra  (ports 13000–13650)    2. daytona  (ports 12000–12150)
+─────────────────────────────────────      ──────────────────────────────
+postgres-shared      :13000                api          :12000
+redis-shared         :13050                proxy        :12050
+minio-shared         :13100/13150          runner       :12100  (Docker-in-Docker)
+maildev-shared       :13200/13250          ssh-gateway  :12150
+dex-shared (OIDC)    :13300
+jaeger-shared        :13350
+registry-shared      :13600
+```
+
+**Runner** is the worker that executes sandboxes. It runs its own Docker daemon internally (DinD). Sandbox containers live inside the runner — not visible in your host `docker ps`. See [Viewing sandboxes](#viewing-sandboxes).
+
+---
+
+## Networking on Windows 11 Home (WSL2 NAT)
+
+Windows 11 Home uses a **NAT-based WSL2 network** — two separate IPs are in play and this matters for accessing the dashboard:
+
+```
+Windows host       127.0.0.1 / localhost
+WSL2 NAT network   192.168.x.x  ← Docker containers bind here, not to localhost
+```
+
+Docker Desktop runs containers inside WSL2, so ports are bound to the **WSL2 IP**, not `localhost`:
+
+| Access method | Dashboard loads | OIDC login works |
+|---------------|----------------|-----------------|
+| `http://localhost:12000` (no portproxy) | No | No |
+| `http://<WSL2-IP>:12000` | **Yes** | No — `crypto.subtle` blocked on non-localhost HTTP |
+| `http://localhost:12000` (with portproxy) | **Yes** | **Yes** |
+
+**Why OIDC fails on the WSL2 IP:** The browser's `crypto.subtle` API (used for PKCE auth flow with Dex) is blocked on plain HTTP unless the origin is `localhost`. Accessing via the WSL2 IP triggers this restriction.
+
+**Find your WSL2 IP:**
+```bash
+# In WSL2 terminal or Git Bash:
+ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
+
+# Or from Windows PowerShell:
+wsl hostname -I
+```
+
+**Fix — netsh portproxy** (run once per reboot, as Administrator):
+```cmd
+netsh interface portproxy add v4tov4 listenport=12000 listenaddress=127.0.0.1 connectport=12000 connectaddress=<WSL2-IP>
+```
+This forwards `localhost:12000 → <WSL2-IP>:12000`, satisfying `crypto.subtle`.
+
+> The portproxy is **not persistent** — re-run after every Windows reboot.
+
+---
+
+## Quick start
+
+### Prerequisites
+- Windows 11 Home with Docker Desktop (WSL2 backend enabled)
+- Git
+
+### 1. Note your WSL2 IP
+```bash
+ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
+```
+Update `docker/.env` (`WSL2_IP=`) and `shared-infra/dex/config.yaml` if your IP differs.
+
+### 2. Start shared infrastructure first
+```bash
+bash shared-infra/start-shared-infra.sh
+```
+Shared-infra must be running before Daytona services start — the API connects to postgres, redis, and minio at startup.
+
+### 3. Build and run Daytona
+```bash
+bash build-and-run.sh
+```
+
+**Cold start:** First run pulls `daytonaio/sandbox:0.5.0-slim` (~1 GB) from Docker Hub into the runner's internal registry. This takes **3–10 min**. The sandbox won't be available until the snapshot state changes to `active`:
+```bash
+docker exec postgres-shared psql -U admin -d daytona -c \
+  'SELECT name, state FROM snapshot;'
+# Wait until state = active
+```
+
+### 4. Set up portproxy for OIDC login
+
+Run **as Administrator** in PowerShell or CMD (once per reboot):
+```cmd
+netsh interface portproxy add v4tov4 listenport=12000 listenaddress=127.0.0.1 connectport=<WSL2-IP>
+```
+
+### 5. Open the dashboard
+```
+http://localhost:12000/dashboard
+```
+Login: `admin@local.dev` / `password`
+
+> If you skip portproxy, open `http://<WSL2-IP>:12000/dashboard` to see the UI — but OIDC login will fail.
+
+### 6. Stop
+```bash
+docker compose -f docker/docker-compose.local.yaml --env-file docker/.env down
+bash shared-infra/start-shared-infra.sh --down
+```
+
+---
+
+## Credentials
+
+Replace `<WSL2-IP>` with your actual WSL2 IP from Step 1.
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Dashboard (OIDC login) | http://localhost:12000/dashboard *(needs portproxy)* | admin@local.dev / password |
+| Dashboard (view only) | http://\<WSL2-IP\>:12000/dashboard | OIDC login fails |
+| PostgreSQL | \<WSL2-IP\>:13000 | admin / admin — DB: daytona |
+| MinIO Console | http://\<WSL2-IP\>:13150 | minioadmin / minioadmin |
+| Grafana | http://\<WSL2-IP\>:13550 | admin / admin |
+| Registry UI | http://\<WSL2-IP\>:13650 | no auth |
+| MailDev | http://\<WSL2-IP\>:13250 | no auth |
+| Jaeger UI | http://\<WSL2-IP\>:13350 | no auth |
+
+---
+
+## Viewing sandboxes
+
+Sandbox containers run **inside the runner's Docker-in-Docker** daemon — not visible on the host:
+
+```bash
+# List running sandbox containers (inside runner DinD)
+docker exec <project>-runner-1 docker ps
+
+# Check sandbox records in DB
+docker exec postgres-shared psql -U admin -d daytona -c \
+  'SELECT id, state, snapshot, "createdAt" FROM sandbox ORDER BY "createdAt" DESC LIMIT 5;'
+```
+
+> The compose project name prefix (e.g. `daytona-fork`) is set in `docker/docker-compose.local.yaml` via `name:`.
+
+---
+
+## Common operational notes
+
+**Startup order matters** — always start `shared-infra` before `build-and-run.sh`. The API fails to start if postgres or redis is unreachable.
+
+**After `docker compose restart api`** — browser session is invalidated. Do a hard refresh (Ctrl+Shift+R) and log in again.
+
+**After any dashboard source code change** — Vite bundles the dashboard into the API Docker image at build time. A code change requires:
+```bash
+docker build -t daytona-api:local-latest -f apps/api/Dockerfile .
+docker compose -f docker/docker-compose.local.yaml --env-file docker/.env up -d --force-recreate api
+```
+A simple container restart is not enough.
+
+**Runner becomes UNRESPONSIVE after API restart** — wait 1–2 min. The runner self-recovers by re-posting its healthcheck. Verify:
+```bash
+docker exec postgres-shared psql -U admin -d daytona -c \
+  'SELECT state, NOW()-"lastChecked" AS staleness FROM runner;'
+# Should show: ready | < 00:01:00
+```
+
+---
+
+## Key logs and debugging
+
+```bash
+# API request logs (filtered — removes runner/healthcheck/OTel noise)
+docker compose -f docker/docker-compose.local.yaml --env-file docker/.env logs --since=5m api 2>&1 \
+  | grep '"method"\|"statusCode"\|errored' \
+  | grep -v "for-runner\|healthcheck\|OTLPExporter\|stack"
+
+# Runner logs
+docker compose -f docker/docker-compose.local.yaml --env-file docker/.env logs -f runner
+
+# Check runner + snapshot readiness
+docker exec postgres-shared psql -U admin -d daytona -c \
+  'SELECT id, state, "availabilityScore", NOW()-"lastChecked" AS staleness FROM runner;'
+docker exec postgres-shared psql -U admin -d daytona -c \
+  'SELECT name, state, "errorReason" FROM snapshot;'
+docker exec postgres-shared psql -U admin -d daytona -c \
+  'SELECT "runnerId", state FROM snapshot_runner;'
+```
+
+See [docs/troubleshooting-kb.md](docs/troubleshooting-kb.md) for 20 known issues with root causes and fixes.
+
+---
+
+## Documentation
+
+| File | Contents |
+|------|----------|
+| [docs/app-module-reference.md](docs/app-module-reference.md) | All services, ports, env vars, API endpoints, feature flag system |
+| [docs/troubleshooting-kb.md](docs/troubleshooting-kb.md) | 20 issues — Symptom / Root Cause / Fix / Status |
+| [docs/flow-diagrams.md](docs/flow-diagrams.md) | Mermaid diagrams for OIDC login, sandbox creation, snapshot lifecycle, proxy, SSH, runner healthcheck, startup order |
+| [CLAUDE.md](CLAUDE.md) | Claude Code guidance — build commands, architecture, memory pointers |
+| [.claude/memory/](.claude/memory/) | Claude Code session memory files |
+
+---
+
+## Known limitations (local dev)
+
+| Feature | Status |
+|---------|--------|
+| Playground / Webhooks | Requires `SVIX_AUTH_TOKEN` (external paid service). Use `/dashboard/sandboxes` instead. |
+| Multi-region | Single runner only. |
+| HTTPS / TLS | HTTP only. OIDC requires `localhost` via netsh portproxy. |
+| OTel traces | `OTLPExporter: Not Found` errors in API logs are harmless — telemetry path mismatch, not a functional issue. |
+| Sandbox persistence | Sandbox containers live inside the runner. If the runner container restarts, all running sandboxes are lost. |
